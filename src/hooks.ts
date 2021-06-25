@@ -1,10 +1,32 @@
 import cookie from 'cookie';
 import { v4 as uuid } from '@lukeed/uuid';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, Request } from '@sveltejs/kit';
+
+const i18n = {
+	locales: ['en', 'de', 'fr', 'es'],
+	defaultLocale: 'en',
+}
 
 export const handle: Handle = async ({ request, resolve }) => {
 	const cookies = cookie.parse(request.headers.cookie || '');
 	request.locals.userid = cookies.userid || uuid();
+
+	let lang = i18n.defaultLocale;
+	let path = request.path;
+
+	i18n.locales.forEach(locale => {
+		const regex = new RegExp(`/${locale}`);
+		if (path.match(regex)) {
+			lang = locale;
+			path = path.replace(regex, '');
+		}
+	});
+
+	request.path = path;
+	request.locals.lang = lang;
+
+	// console.log(JSON.stringify(request, null, 2));
+
 
 	// TODO https://github.com/sveltejs/kit/issues/1046
 	if (request.query.has('_method')) {
@@ -21,3 +43,9 @@ export const handle: Handle = async ({ request, resolve }) => {
 
 	return response;
 };
+
+export function getSession(request: Request): any {
+	return {
+		lang: request.locals.lang || i18n.defaultLocale,
+	};
+}

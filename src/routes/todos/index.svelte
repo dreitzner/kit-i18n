@@ -3,14 +3,15 @@
 	import type { Load } from '@sveltejs/kit';
 
 	// see https://kit.svelte.dev/docs#loading
-	export const load: Load = async ({ fetch }) => {
+	export const load: Load = async ({ fetch, session, context }) => {
 		const res = await fetch('/todos.json');
 
 		if (res.ok) {
 			const todos = await res.json();
 
+			
 			return {
-				props: { todos }
+				props: { todos, lang: session.lang }
 			};
 		}
 
@@ -33,6 +34,7 @@
 		done: boolean;
 	};
 
+	export let lang: string;
 	export let todos: Todo[];
 
 	async function patch(res: Response) {
@@ -50,7 +52,7 @@
 </svelte:head>
 
 <div class="todos">
-	<h1>Todos</h1>
+	<h1>Todos in {lang}</h1>
 
 	<form
 		class="new"
